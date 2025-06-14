@@ -25,7 +25,7 @@ class GameViewModel : ViewModel() {
                 MutableList(playerCount){0}
             )
             for(i in 0 until playerCount){
-                p.commanderDamage.add(0)
+                p.commanderDamage[i] = 0
             }
             p
         }

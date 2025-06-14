@@ -17,6 +17,7 @@ data class Player(
     var poisonCounters: Int = 0,
 
     /** Amount of energy counters the player has **/
-    var energyCounters: Int = 0
+    var energyCounters: Int = 0,
     /** TODO: add more counters if it is needed during gameplay **/
+    var countersList: MutableList<Int> = emptyList<Int>().toMutableList()
 )

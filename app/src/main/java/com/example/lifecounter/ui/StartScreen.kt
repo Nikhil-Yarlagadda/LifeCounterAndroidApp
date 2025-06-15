@@ -95,7 +95,9 @@ class StartScreen {
 
             configurations(playerAmount,lifeTotal, lifeInput, {playerAmount = it},
                 {lifeInput = it
-                lifeTotal = it.toIntOrNull() ?: 0 })
+                lifeTotal = it.toIntOrNull() ?: 0 },
+                {lifeTotal = it
+                lifeInput = lifeTotal.toString()})
             startButton(
                 onStartPressed = onStartPressed,
                 playerAmount = playerAmount,
@@ -125,7 +127,7 @@ class StartScreen {
      */
     @Composable
     private fun configurations(playerAmount: Int, lifeTotal:Int, lifeInput:String, onSelectClicked: (Int) -> Unit,
-                               onValueChange: (String) -> Unit, modifier: Modifier = Modifier){
+                               onValueChange: (String) -> Unit, lifeTotalSet:(Int)->Unit, modifier: Modifier = Modifier){
         var color = MaterialTheme.colorScheme.primaryContainer
         var darkColor = MaterialTheme.colorScheme.inversePrimary
         val click = onSelectClicked
@@ -224,17 +226,51 @@ class StartScreen {
                 Image(
                     painter = painterResource(R.drawable.white_straight_line),
                     contentDescription = "line",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(10.dp, 200.dp)
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(10.dp, 125.dp)
                 )
             }
 
-            Column(verticalArrangement = Arrangement.Center, modifier = modifier.fillMaxHeight().width(
-                (LocalConfiguration.current.screenWidthDp/4).dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally,modifier = modifier.fillMaxHeight().width(
+                (LocalConfiguration.current.screenWidthDp/4).dp).padding(8.dp)) {
+
+                Text(
+                    text = "Starting Life Total",
+                    modifier = modifier.padding(8.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.labelMedium
+                )
+//                Spacer(Modifier.height(44.dp))
+
+                Row(){
+                    Button(onClick = {lifeTotalSet(20)},
+                        modifier = modifier.padding(4.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = color))
+                    {
+                        Text(
+                            text = "20",
+                            modifier = modifier,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+
+                    Spacer(Modifier.width(6.dp))
+
+                    Button(onClick = {lifeTotalSet(40)},
+                        modifier = modifier.padding(4.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = color))
+                    {
+                        Text(
+                            text = "40",
+                            modifier = modifier,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
                 TextField(
                     value = lifeInput,
                     onValueChange = onValueChange,
-                    label = { Text("Enter Starting Life", style = MaterialTheme.typography.labelSmall)},
+                    label = { Text("Custom Life Total", style = MaterialTheme.typography.labelSmall)},
                     keyboardOptions = KeyboardOptions.Default.copy(
                         keyboardType = KeyboardType.Number,
                         imeAction = ImeAction.Done

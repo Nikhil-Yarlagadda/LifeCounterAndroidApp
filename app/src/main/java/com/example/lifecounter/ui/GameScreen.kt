@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,9 +21,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsEndWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -55,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.lifecounter.R
+import com.example.lifecounter.data.Counter
 import com.example.lifecounter.data.Player
 import com.example.lifecounter.ui.theme.Shapes
 
@@ -116,70 +120,83 @@ class GameScreen {
         var poison by remember { mutableIntStateOf(player.poisonCounters) }
         var energy by remember { mutableIntStateOf(player.energyCounters) }
         var nameDialog by remember { mutableStateOf(false) }
-        var poisonDialog by remember { mutableStateOf(false) }
-        var energyDialog by remember { mutableStateOf(false) }
+        var counterDialog by remember { mutableStateOf(false) }
+//        var poisonDialog by remember { mutableStateOf(false) }
+//        var energyDialog by remember { mutableStateOf(false) }
         var commanderDialog by remember { mutableStateOf(false) }
         var name by remember { mutableStateOf(player.name) }
 
         Row(modifier = Modifier.fillMaxSize()){
             //contains minus button and energy/poison counters
             Column(horizontalAlignment = Alignment.CenterHorizontally,modifier = Modifier.weight(1.0F)){
-                Row(modifier = Modifier.weight(1.0f)) {
-                    Column {
-                        Row(modifier = Modifier.padding(4.dp)){
-                            Image(
-                                painter = painterResource(R.drawable.baseline_flash_on_24),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                text = "Energy: $energy",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.clickable(
-                                onClick = {energyDialog = true}
-                                )
-                            )
+                Row(modifier = Modifier.weight(1.0f).fillMaxWidth()) {
+                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Image(painter = painterResource(R.drawable.baseline_menu_24),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(0.dp, 1.dp)
+                                .clickable(
+                                    onClick = { counterDialog = true }
+                                ))
+                        if(counterDialog){
+                            counterMenu({counterDialog = false}, player)
                         }
-
-                        if(energyDialog){
-                            poisonEnergyDialog(
-                                dismiss = {energyDialog = false},
-                                title = "Energy",
-                                value = energy,
-                                add = {energy += 1
-                                        player.energyCounters = energy},
-                                minus = {energy -= 1
-                                    player.energyCounters = energy})
-                        }
-
-                        Row(modifier = Modifier.padding(4.dp)) {
-                            Image(
-                                painter = painterResource(R.drawable.poisoncounter),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(12.dp)
-                            )
-                            Text(
-                                "Poison: $poison",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.clickable(
-                                    onClick = { poisonDialog = true }
-                                )
-                            )
-                        }
-                        if(poisonDialog){
-                            poisonEnergyDialog(
-                                dismiss = {poisonDialog = false},
-                                title = "Poison",
-                                value = poison,
-                                add = {poison += 1
-                                    player.poisonCounters = poison},
-                                minus = {poison -= 1
-                                    player.poisonCounters = poison})
-                        }
+//                        Row(modifier = Modifier.padding(4.dp)){
+//                            Image(
+//                                painter = painterResource(R.drawable.baseline_flash_on_24),
+//                                contentDescription = null,
+//                                contentScale = ContentScale.Crop,
+//                                modifier = Modifier.size(12.dp)
+//                            )
+//                            Text(
+//                                text = "Energy: $energy",
+//                                style = MaterialTheme.typography.labelSmall,
+//                                color = MaterialTheme.colorScheme.primary,
+//                                modifier = Modifier.clickable(
+//                                onClick = {energyDialog = true}
+//                                )
+//                            )
+//                        }
+//
+//                        if(energyDialog){
+//                            counterDialog(
+//                                dismiss = {energyDialog = false},
+//                                title = "Energy",
+//                                value = energy,
+//                                add = {energy += 1
+//                                        player.energyCounters = energy},
+//                                minus = {energy -= 1
+//                                    player.energyCounters = energy})
+//                        }
+//
+//                        Row(modifier = Modifier.padding(4.dp)) {
+//                            Image(
+//                                painter = painterResource(R.drawable.poisoncounter),
+//                                contentDescription = null,
+//                                contentScale = ContentScale.Crop,
+//                                modifier = Modifier.size(12.dp)
+//                            )
+//                            Text(
+//                                "Poison: $poison",
+//                                style = MaterialTheme.typography.labelSmall,
+//                                color = MaterialTheme.colorScheme.primary,
+//                                modifier = Modifier.clickable(
+//                                    onClick = { poisonDialog = true }
+//                                )
+//                            )
+//                        }
+//                        if(poisonDialog){
+//                            counterDialog(
+//                                dismiss = {poisonDialog = false},
+//                                title = "Poison",
+//                                value = poison,
+//                                add = {poison += 1
+//                                    player.poisonCounters = poison},
+//                                minus = {poison -= 1
+//                                    player.poisonCounters = poison})
+//                        }
                     }
                 }
 
@@ -240,37 +257,43 @@ class GameScreen {
                                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)) {
                                 Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                                    Text(
-                                        text = "Enter New Name Here:",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.weight(1.0f, false)
-                                    )
-                                    OutlinedTextField(
-                                        value = name,
-                                        onValueChange = {
-                                            name = it
-                                            player.name = name
-                                        },
-                                        modifier = Modifier.weight(1.0f),
-                                        keyboardOptions = KeyboardOptions.Default.copy(
-                                            keyboardType = KeyboardType.Text,
-                                            imeAction = ImeAction.Done
-                                        )
-                                    )
-                                    TextButton(
-                                        onClick = { nameDialog = false
-                                                    name= name.trim()
-                                                    player.name = name},
-                                        colors = ButtonDefaults.buttonColors()
-                                            .copy(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                                        modifier = Modifier.weight(1.0f, false)
-                                    ) {
+                                    Column(modifier = Modifier.weight(1.0f)) {
                                         Text(
-                                            text = "Submit Name",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = MaterialTheme.colorScheme.scrim
+                                            text = "Enter New Name:",
+                                            style = MaterialTheme.typography.labelLarge,
+                                            color = MaterialTheme.colorScheme.primary
+
                                         )
+                                    }
+                                    Column(modifier = Modifier.weight(1.0f)) {
+                                        OutlinedTextField(
+                                            value = name,
+                                            onValueChange = {
+                                                name = it
+                                                player.name = name
+                                            },
+                                            keyboardOptions = KeyboardOptions.Default.copy(
+                                                keyboardType = KeyboardType.Text,
+                                                imeAction = ImeAction.Done
+                                            )
+                                        )
+                                    }
+                                    Column(modifier = Modifier.weight(1.0f)) {
+                                        TextButton(
+                                            onClick = {
+                                                nameDialog = false
+                                                name = name.trim()
+                                                player.name = name
+                                            },
+                                            colors = ButtonDefaults.buttonColors()
+                                                .copy(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                                        ) {
+                                            Text(
+                                                text = "Submit Name",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = MaterialTheme.colorScheme.scrim
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -289,16 +312,19 @@ class GameScreen {
 
             //contains plus button and commander damage button
             Column(horizontalAlignment = Alignment.CenterHorizontally,modifier = Modifier.weight(1.0F)){
-                Row(modifier = Modifier.weight(1.0f).fillMaxWidth()) {
+                Row(modifier = Modifier
+                    .weight(1.0f)
+                    .fillMaxWidth()) {
 
-                    Column(modifier = Modifier.fillMaxWidth().padding(5.dp), horizontalAlignment = Alignment.End) {
+                    Column(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         //                    Button(onClick = { player.commanderDamage }) {
                         //                        Text(
                         //                            text = "Hi",
                         //                            style = MaterialTheme.typography.labelMedium
                         //                        )
                         //                    }
-                        Spacer(Modifier.height(0.dp))
                         Image(painter = painterResource(R.drawable.commander),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
@@ -348,12 +374,163 @@ class GameScreen {
     }
 
     @Composable
-    fun poisonEnergyDialog(dismiss:()->Unit, title:String, value: Int, add:()->Unit, minus:()-> Unit){
+    fun addCounter(dismiss: () -> Unit, player: Player){
+        var name by remember { mutableStateOf("") }
+        Dialog(onDismissRequest = dismiss,
+            content = {
+                Card(modifier = Modifier
+                    .height(200.dp)
+                    .width(350.dp),border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)) {
+                    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(modifier = Modifier.weight(1.0f)) {
+                            Text(
+                                text = "Enter Counter Name:",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1.0f)) {
+                            OutlinedTextField(
+                                value = name,
+                                onValueChange = {
+                                    name = it
+                                },
+                                keyboardOptions = KeyboardOptions.Default.copy(
+                                    keyboardType = KeyboardType.Text,
+                                    imeAction = ImeAction.Done
+                                )
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1.0f)) {
+                            TextButton(
+                                onClick = {
+                                    dismiss()
+                                    name = name.trim()
+                                    player.countersList.add(Counter(name, 0))
+                                },
+                                colors = ButtonDefaults.buttonColors()
+                                    .copy(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                            ) {
+                                Text(
+                                    text = "Submit Counter",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.scrim
+                                )
+                            }
+                        }
+                    }
+                }
+            })
+    }
+
+    @Composable
+    fun counterMenu(dismiss: () -> Unit, player: Player){
+        val scrollstate = rememberScrollState()
+        var addCounterDialog by remember { mutableStateOf(false) }
+        Dialog(dismiss) {
+            Card(
+                modifier = Modifier
+                    .height(400.dp)
+                    .width(250.dp),
+                border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .height(32.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1.0f).padding(2.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Counters",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                            )
+                        }
+
+                        Column(
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .padding(2.dp, 6.dp),
+                            horizontalAlignment = Alignment.End
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.baseline_add_circle_24),
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable(
+                                        onClick = { addCounterDialog = true }
+                                    ),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop
+                            )
+                            if(addCounterDialog){
+                                addCounter({addCounterDialog = false}, player)
+                            }
+                        }
+                    }
+                    Column(Modifier.fillMaxWidth().verticalScroll(scrollstate)) {
+                        for (i in 0 until player.countersList.size) {
+                            var dialog by remember { mutableStateOf(false) }
+                            var value by remember { mutableIntStateOf(player.countersList[i].value) }
+                            Text(
+                                text = player.countersList[i].name + ": " + player.countersList[i].value,
+                                modifier = Modifier.clickable(
+                                    onClick = { dialog = true }
+                                ).padding(10.dp, 3.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            if (dialog) {
+                                counterDialog({ dialog = false },
+                                    player.countersList[i].name,
+                                    value,
+                                    {
+                                        value += 1
+                                        player.countersList[i].value = value
+                                    },
+                                    {
+                                        value -= 1
+                                        player.countersList[i].value = value
+                                    })
+                            }
+                        }
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally,modifier = Modifier
+                        .padding(4.dp).fillMaxWidth()){
+                        Button(onClick = {dismiss()},
+                            colors = ButtonDefaults.buttonColors().copy(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                        ) {
+                            Text(
+                                text = "Done",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.scrim
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun counterDialog(dismiss:()->Unit, title:String, value: Int, add:()->Unit, minus:()-> Unit){
         Dialog(
             onDismissRequest = dismiss,
             content = {
                 Card(modifier = Modifier
-                    .height(200.dp)
+                    .height(220.dp)
                     .width(300.dp)
                     ,border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
@@ -361,7 +538,7 @@ class GameScreen {
                 ) {
                     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Change $title",
+                            text = "$title Counter",
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
@@ -465,7 +642,7 @@ class GameScreen {
                        Row(modifier = Modifier
                            .fillMaxWidth()
                            .weight(2.5f)) {
-                           for (i in 0 until player.commanderDamage.size / 2) {
+                           for (i in player.commanderDamage.size / 2 until player.commanderDamage.size) {
                                var damage by remember { mutableIntStateOf(player.commanderDamage[i]) }
                                Card(modifier = Modifier
                                    .fillMaxHeight()
@@ -480,7 +657,9 @@ class GameScreen {
                                        text = players[i].name + ": ",
                                        color = MaterialTheme.colorScheme.primary,
                                        style = MaterialTheme.typography.labelMedium,
-                                       modifier = Modifier.weight(1.0f).padding(10.dp, 2.dp)
+                                       modifier = Modifier
+                                           .weight(1.0f)
+                                           .padding(10.dp, 2.dp)
                                    )
                                    Row(
                                        modifier = Modifier
@@ -562,7 +741,7 @@ class GameScreen {
                             .fillMaxWidth()
                             .weight(2.5f))
                         {
-                            for (i in player.commanderDamage.size / 2 until player.commanderDamage.size) {
+                            for (i in 0 until player.commanderDamage.size/2) {
                                 var damage by remember { mutableIntStateOf(player.commanderDamage[i]) }
                                 Card(
                                     modifier = Modifier
@@ -576,7 +755,9 @@ class GameScreen {
                                         text = players[i].name + ": ",
                                         color = MaterialTheme.colorScheme.primary,
                                         style = MaterialTheme.typography.labelMedium,
-                                        modifier = Modifier.weight(1.0f).padding(10.dp, 2.dp)
+                                        modifier = Modifier
+                                            .weight(1.0f)
+                                            .padding(10.dp, 2.dp)
                                     )
                                     Row(
                                         modifier = Modifier

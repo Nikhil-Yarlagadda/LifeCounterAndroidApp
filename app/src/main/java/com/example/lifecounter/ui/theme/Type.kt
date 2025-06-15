@@ -42,6 +42,11 @@ val AppTypography = Typography(
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp
     ),
+    bodyLarge = TextStyle(
+        fontFamily = bebasNueue,
+        fontWeight = FontWeight.Thin,
+        fontSize = 18.sp
+    ),
     bodySmall = TextStyle(
         fontFamily = firaSans,
         fontWeight = FontWeight.Normal,

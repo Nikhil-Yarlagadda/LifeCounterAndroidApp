@@ -1,6 +1,7 @@
 package com.example.lifecounter
 
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,8 +27,10 @@ class MainActivity : ComponentActivity() {
                 {
                     innerPadding ->
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    window.decorView.apply {
+                        systemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    }
                     LifeCounter(modifier = Modifier.padding(innerPadding))
-                   // StartScreen().TestScreen()
 
                 }
             }

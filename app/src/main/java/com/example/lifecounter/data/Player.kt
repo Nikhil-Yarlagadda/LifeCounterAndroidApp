@@ -24,5 +24,5 @@ data class Player(
 
 class Counter(
     var name: String,
-    var value: Int
+    var value: Int,
 )

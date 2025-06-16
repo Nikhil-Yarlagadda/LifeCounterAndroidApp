@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsEndWidth
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -121,15 +123,15 @@ class GameScreen {
         var energy by remember { mutableIntStateOf(player.energyCounters) }
         var nameDialog by remember { mutableStateOf(false) }
         var counterDialog by remember { mutableStateOf(false) }
-//        var poisonDialog by remember { mutableStateOf(false) }
-//        var energyDialog by remember { mutableStateOf(false) }
         var commanderDialog by remember { mutableStateOf(false) }
         var name by remember { mutableStateOf(player.name) }
 
         Row(modifier = Modifier.fillMaxSize()){
             //contains minus button and energy/poison counters
             Column(horizontalAlignment = Alignment.CenterHorizontally,modifier = Modifier.weight(1.0F)){
-                Row(modifier = Modifier.weight(1.0f).fillMaxWidth()) {
+                Row(modifier = Modifier
+                    .weight(1.0f)
+                    .fillMaxWidth()) {
                     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                         Image(painter = painterResource(R.drawable.baseline_menu_24),
                             contentDescription = null,
@@ -141,62 +143,8 @@ class GameScreen {
                                     onClick = { counterDialog = true }
                                 ))
                         if(counterDialog){
-                            counterMenu({counterDialog = false}, player)
+                            counterMenu(flipped, {counterDialog = false}, player)
                         }
-//                        Row(modifier = Modifier.padding(4.dp)){
-//                            Image(
-//                                painter = painterResource(R.drawable.baseline_flash_on_24),
-//                                contentDescription = null,
-//                                contentScale = ContentScale.Crop,
-//                                modifier = Modifier.size(12.dp)
-//                            )
-//                            Text(
-//                                text = "Energy: $energy",
-//                                style = MaterialTheme.typography.labelSmall,
-//                                color = MaterialTheme.colorScheme.primary,
-//                                modifier = Modifier.clickable(
-//                                onClick = {energyDialog = true}
-//                                )
-//                            )
-//                        }
-//
-//                        if(energyDialog){
-//                            counterDialog(
-//                                dismiss = {energyDialog = false},
-//                                title = "Energy",
-//                                value = energy,
-//                                add = {energy += 1
-//                                        player.energyCounters = energy},
-//                                minus = {energy -= 1
-//                                    player.energyCounters = energy})
-//                        }
-//
-//                        Row(modifier = Modifier.padding(4.dp)) {
-//                            Image(
-//                                painter = painterResource(R.drawable.poisoncounter),
-//                                contentDescription = null,
-//                                contentScale = ContentScale.Crop,
-//                                modifier = Modifier.size(12.dp)
-//                            )
-//                            Text(
-//                                "Poison: $poison",
-//                                style = MaterialTheme.typography.labelSmall,
-//                                color = MaterialTheme.colorScheme.primary,
-//                                modifier = Modifier.clickable(
-//                                    onClick = { poisonDialog = true }
-//                                )
-//                            )
-//                        }
-//                        if(poisonDialog){
-//                            counterDialog(
-//                                dismiss = {poisonDialog = false},
-//                                title = "Poison",
-//                                value = poison,
-//                                add = {poison += 1
-//                                    player.poisonCounters = poison},
-//                                minus = {poison -= 1
-//                                    player.poisonCounters = poison})
-//                        }
                     }
                 }
 
@@ -253,7 +201,11 @@ class GameScreen {
                         content = {
                             Card(modifier = Modifier
                                 .height(200.dp)
-                                .width(350.dp),border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
+                                .width(350.dp)
+                                .graphicsLayer {
+                                    rotationZ = if (flipped) 180f else 0f
+                                }
+                                ,border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
                                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)) {
                                 Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -319,12 +271,6 @@ class GameScreen {
                     Column(modifier = Modifier
                         .fillMaxWidth()
                         .padding(5.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        //                    Button(onClick = { player.commanderDamage }) {
-                        //                        Text(
-                        //                            text = "Hi",
-                        //                            style = MaterialTheme.typography.labelMedium
-                        //                        )
-                        //                    }
                         Image(painter = painterResource(R.drawable.commander),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
@@ -336,7 +282,7 @@ class GameScreen {
                     }
                 }
                 if(commanderDialog){
-                    commanderDialog({commanderDialog = false}, player,players)
+                    commanderDialog(flipped, {commanderDialog = false}, player,players)
                 }
 
                 Row(modifier = Modifier.weight(1.0f)) {
@@ -374,13 +320,19 @@ class GameScreen {
     }
 
     @Composable
-    fun addCounter(dismiss: () -> Unit, player: Player){
+    fun addCounter(flipped:Boolean, dismiss: () -> Unit, player: Player){
         var name by remember { mutableStateOf("") }
-        Dialog(onDismissRequest = dismiss,
+        Dialog(onDismissRequest = { dismiss()
+            name = name.trim()
+            player.countersList.add(Counter(name, 0))},
             content = {
                 Card(modifier = Modifier
                     .height(200.dp)
-                    .width(350.dp),border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
+                    .width(350.dp)
+                    .graphicsLayer {
+                        rotationZ = if (flipped) 180f else 0f
+                    }
+                    ,border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)) {
                     Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -426,14 +378,17 @@ class GameScreen {
     }
 
     @Composable
-    fun counterMenu(dismiss: () -> Unit, player: Player){
+    fun counterMenu(flipped:Boolean, dismiss: () -> Unit, player: Player){
         val scrollstate = rememberScrollState()
         var addCounterDialog by remember { mutableStateOf(false) }
         Dialog(dismiss) {
             Card(
                 modifier = Modifier
                     .height(400.dp)
-                    .width(250.dp),
+                    .width(250.dp)
+                    .graphicsLayer {
+                        rotationZ = if (flipped) 180f else 0f
+                    },
                 border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)
@@ -447,7 +402,9 @@ class GameScreen {
                             .fillMaxWidth()
                     ) {
                         Column(
-                            modifier = Modifier.weight(1.0f).padding(2.dp),
+                            modifier = Modifier
+                                .weight(1.0f)
+                                .padding(2.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
@@ -475,25 +432,30 @@ class GameScreen {
                                 contentScale = ContentScale.Crop
                             )
                             if(addCounterDialog){
-                                addCounter({addCounterDialog = false}, player)
+                                addCounter(flipped, {addCounterDialog = false}, player)
                             }
                         }
                     }
-                    Column(Modifier.fillMaxWidth().verticalScroll(scrollstate)) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(scrollstate)) {
                         for (i in 0 until player.countersList.size) {
                             var dialog by remember { mutableStateOf(false) }
                             var value by remember { mutableIntStateOf(player.countersList[i].value) }
                             Text(
                                 text = player.countersList[i].name + ": " + player.countersList[i].value,
-                                modifier = Modifier.clickable(
-                                    onClick = { dialog = true }
-                                ).padding(10.dp, 3.dp),
+                                modifier = Modifier
+                                    .clickable(
+                                        onClick = { dialog = true }
+                                    )
+                                    .padding(10.dp, 3.dp),
                                 color = MaterialTheme.colorScheme.primaryContainer,
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             if (dialog) {
-                                counterDialog({ dialog = false },
+                                counterDialog(flipped, { dialog = false },
                                     player.countersList[i].name,
                                     value,
                                     {
@@ -503,20 +465,9 @@ class GameScreen {
                                     {
                                         value -= 1
                                         player.countersList[i].value = value
-                                    })
+                                    },
+                                    {player.countersList.removeAt(i)})
                             }
-                        }
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally,modifier = Modifier
-                        .padding(4.dp).fillMaxWidth()){
-                        Button(onClick = {dismiss()},
-                            colors = ButtonDefaults.buttonColors().copy(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                        ) {
-                            Text(
-                                text = "Done",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.scrim
-                            )
                         }
                     }
                 }
@@ -525,13 +476,16 @@ class GameScreen {
     }
 
     @Composable
-    fun counterDialog(dismiss:()->Unit, title:String, value: Int, add:()->Unit, minus:()-> Unit){
+    fun counterDialog(flipped:Boolean, dismiss:()->Unit, title:String, value: Int, add:()->Unit, minus:()-> Unit, remove:()-> Unit){
         Dialog(
             onDismissRequest = dismiss,
             content = {
                 Card(modifier = Modifier
                     .height(220.dp)
                     .width(300.dp)
+                    .graphicsLayer {
+                        rotationZ = if (flipped) 180f else 0f
+                    }
                     ,border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
                     elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)
@@ -542,7 +496,7 @@ class GameScreen {
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
-                                .weight(1.0f, false)
+                                .weight(1.2f, false)
                                 .padding(8.dp)
                         )
                         Row(
@@ -600,13 +554,14 @@ class GameScreen {
 
                         }
                         Row(modifier = Modifier
-                            .weight(1.5f)
+                            .weight(2.0f)
                             .padding(4.dp)){
-                            Button(onClick = {dismiss()},
+                            Button(onClick = {remove()
+                                             dismiss()},
                                 colors = ButtonDefaults.buttonColors().copy(containerColor = MaterialTheme.colorScheme.secondaryContainer)
                             ) {
                                 Text(
-                                    text = "Done",
+                                    text = "Remove Counter",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.scrim
                                 )
@@ -619,237 +574,222 @@ class GameScreen {
     }
 
     @Composable
-    fun commanderDialog(dismiss:()->Unit, player:Player, players: List<Player>){
+    fun commanderDialog(flipped:Boolean, dismiss:()->Unit, player:Player, players: List<Player>){
         Dialog(
             onDismissRequest = dismiss,
-            properties = DialogProperties(usePlatformDefaultWidth = false),
+            properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = true,
+                dismissOnBackPress = true, decorFitsSystemWindows = false),
             content = {
-                Card(modifier = Modifier
-                    .height(350.dp)
-                    .width(450.dp)
-                    ,border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)
-                ){
-                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Commander Damage",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.weight(2.0f, false)
-                        )
+                Box(modifier = Modifier
+                    .wrapContentWidth().wrapContentHeight()
+                    .padding(0.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .height(350.dp)
+                            .width(500.dp)
+                            .graphicsLayer {
+                                rotationZ = if (flipped) 180f else 0f
 
-                       Row(modifier = Modifier
-                           .fillMaxWidth()
-                           .weight(2.5f)) {
-                           for (i in player.commanderDamage.size / 2 until player.commanderDamage.size) {
-                               var damage by remember { mutableIntStateOf(player.commanderDamage[i]) }
-                               Card(modifier = Modifier
-                                   .fillMaxHeight()
-                                   .weight(1.0f)
-                                   .graphicsLayer {
-                                       rotationZ = 180f
-                                   },
-                                   colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.scrim),
-                                   border = BorderStroke(1.dp,MaterialTheme.colorScheme.primary)
-                               ) {
-                                   Text(
-                                       text = players[i].name + ": ",
-                                       color = MaterialTheme.colorScheme.primary,
-                                       style = MaterialTheme.typography.labelMedium,
-                                       modifier = Modifier
-                                           .weight(1.0f)
-                                           .padding(10.dp, 2.dp)
-                                   )
-                                   Row(
-                                       modifier = Modifier
-                                           .fillMaxWidth()
-                                           .weight(1.0f)
-                                   ) {
-                                       Column(
-                                           modifier = Modifier.weight(1.0f),
-                                           horizontalAlignment = Alignment.CenterHorizontally
-                                       ) {
-                                           Button(
-                                               onClick = {
-                                                   damage -= 1
-                                                   player.commanderDamage[i] = damage
-                                               },
-                                               shape = CircleShape,
-                                               modifier = Modifier.size(25.dp),
-                                               colors = ButtonDefaults.buttonColors()
-                                                   .copy(containerColor = MaterialTheme.colorScheme.scrim),
-                                               border = BorderStroke(
-                                                   1.dp, MaterialTheme.colorScheme.primaryContainer
-                                               ),
-                                               contentPadding = PaddingValues(0.dp)
-                                           ) {
-                                               Text(
-                                                   text = "-",
-                                                   style = MaterialTheme.typography.labelMedium,
-                                                   color = MaterialTheme.colorScheme.primary,
-                                                   modifier = Modifier
-                                                       .padding(0.dp)
-                                               )
-
-                                           }
-                                       }
-                                       Column(
-                                           modifier = Modifier.weight(2.0f),
-                                           horizontalAlignment = Alignment.CenterHorizontally
-                                       ) {
-                                           Text(
-                                               text = damage.toString(),
-                                               style = MaterialTheme.typography.labelMedium,
-                                               color = MaterialTheme.colorScheme.primary
-                                           )
-                                       }
-                                       Column(
-                                           modifier = Modifier.weight(1.0f),
-                                           horizontalAlignment = Alignment.CenterHorizontally
-                                       ) {
-                                           Button(
-                                               onClick = {
-                                                   damage += 1
-                                                   player.commanderDamage[i] = damage
-                                               },
-                                               shape = CircleShape,
-                                               modifier = Modifier.size(25.dp),
-                                               colors = ButtonDefaults.buttonColors()
-                                                   .copy(containerColor = MaterialTheme.colorScheme.scrim),
-                                               border = BorderStroke(
-                                                   1.dp, MaterialTheme.colorScheme.primaryContainer
-                                               ),
-                                               contentPadding = PaddingValues(0.dp)
-                                           ) {
-                                               Text(
-                                                   text = "+",
-                                                   style = MaterialTheme.typography.labelMedium,
-                                                   color = MaterialTheme.colorScheme.primary,
-                                                   modifier = Modifier
-                                                       .padding(0.dp)
-                                               )
-
-                                           }
-                                       }
-                                   }
-                               }
-                           }
-                       }
-                        Spacer(Modifier.weight(1.0f))
-                        Row(modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(2.5f))
-                        {
-                            for (i in 0 until player.commanderDamage.size/2) {
-                                var damage by remember { mutableIntStateOf(player.commanderDamage[i]) }
-                                Card(
+                            },
+                        border = BorderStroke(Dp.Hairline, MaterialTheme.colorScheme.secondary),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.scrim)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Commander Damage",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .weight(2.25f, false)
+                                    .padding(6.dp)
+                            )
+                            if (!flipped) {
+                                Row(
                                     modifier = Modifier
-                                        .fillMaxHeight()
-                                        .weight(1.0f),
-                                    colors = CardDefaults.cardColors()
-                                        .copy(containerColor = MaterialTheme.colorScheme.scrim),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                                        .fillMaxWidth()
+                                        .weight(2.5f)
                                 ) {
-                                    Text(
-                                        text = players[i].name + ": ",
-                                        color = MaterialTheme.colorScheme.primary,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        modifier = Modifier
+                                    CommanderCard(
+                                        player,
+                                        players,
+                                        player.commanderDamage.size / 2,
+                                        player.commanderDamage.size,
+                                        flipped,
+                                        false,
+                                        Modifier
+                                            .wrapContentHeight()
                                             .weight(1.0f)
-                                            .padding(10.dp, 2.dp)
                                     )
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .weight(1.0f)
-                                    ) {
-                                        Column(
-                                            modifier = Modifier.weight(1.0f),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Button(
-                                                onClick = {
-                                                    damage -= 1
-                                                    player.commanderDamage[i] = damage
-                                                },
-                                                shape = CircleShape,
-                                                modifier = Modifier.size(25.dp),
-                                                colors = ButtonDefaults.buttonColors()
-                                                    .copy(containerColor = MaterialTheme.colorScheme.scrim),
-                                                border = BorderStroke(
-                                                    1.dp,
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                ),
-                                                contentPadding = PaddingValues(0.dp)
-                                            ) {
-                                                Text(
-                                                    text = "-",
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier.padding(0.dp)
-                                                )
-                                            }
-                                        }
-                                        Column(
-                                            modifier = Modifier.weight(2.0f),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text(
-                                                text = damage.toString(),
-                                                style = MaterialTheme.typography.labelMedium,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                        }
-                                        Column(
-                                            modifier = Modifier.weight(1.0f),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Button(
-                                                onClick = {
-                                                    damage += 1
-                                                    player.commanderDamage[i] = damage
-                                                },
-                                                shape = CircleShape,
-                                                modifier = Modifier.size(25.dp),
-                                                colors = ButtonDefaults.buttonColors()
-                                                    .copy(containerColor = MaterialTheme.colorScheme.scrim),
-                                                border = BorderStroke(
-                                                    1.dp,
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                ),
-                                                contentPadding = PaddingValues(0.dp)
-                                            )
-                                            {
-                                                Text(
-                                                    text = "+",
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    modifier = Modifier
-                                                        .padding(0.dp)
-                                                )
-                                            }
-                                        }
-                                    }
                                 }
-                            }
-                        }
-                        Row(modifier = Modifier.weight(2.0f), verticalAlignment = Alignment.CenterVertically) {
-                            Button(
-                                onClick = { dismiss() },
-                                colors = ButtonDefaults.buttonColors()
-                                    .copy(containerColor = MaterialTheme.colorScheme.secondaryContainer)
-                            ) {
-                                Text(
-                                    text = "Done",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.scrim
+                                Spacer(Modifier.height(12.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(2.5f)
                                 )
+                                {
+                                    CommanderCard(
+                                        player,
+                                        players,
+                                        0, player.commanderDamage.size / 2,
+                                        !flipped,
+                                        false,
+                                        Modifier
+                                            .wrapContentHeight()
+                                            .weight(1.0f)
+                                    )
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(2.5f)
+                                ) {
+                                    CommanderCard(
+                                        player,
+                                        players,
+                                        0, player.commanderDamage.size / 2,
+                                        !flipped,
+                                        true,
+                                        Modifier
+                                            .wrapContentHeight()
+                                            .weight(1.0f)
+                                    )
+                                }
+
+                                Spacer(Modifier.height(12.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(2.5f)
+                                )
+                                {
+                                    CommanderCard(
+                                        player,
+                                        players,
+                                        player.commanderDamage.size / 2,
+                                        player.commanderDamage.size,
+                                        flipped,
+                                        true,
+                                        Modifier
+                                            .wrapContentHeight()
+                                            .weight(1.0f)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         )
+    }
+
+    @Composable
+    fun CommanderCard(player: Player, players: List<Player>, start: Int, end:Int, flipped: Boolean, overallFlip:Boolean, modifier: Modifier){
+        var offset = if(overallFlip) 2 else 0
+        for (j in start until end) {
+            var i = j + offset
+            var damage by remember { mutableIntStateOf(player.commanderDamage[i]) }
+            Card(modifier = modifier
+                .graphicsLayer {
+                    rotationZ = if(flipped) 0f else 180f
+                },
+                colors = CardDefaults.cardColors().copy(containerColor = MaterialTheme.colorScheme.scrim),
+                border = BorderStroke(1.dp,MaterialTheme.colorScheme.primary)
+            ) {
+                Column(Modifier.fillMaxWidth().weight(1.0f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = players[i].name,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier
+                            .padding(10.dp, 2.dp)
+                    )
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1.0f)
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1.0f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            onClick = {
+                                damage -= 1
+                                player.commanderDamage[i] = damage
+                            },
+                            shape = CircleShape,
+                            modifier = Modifier.size(25.dp),
+                            colors = ButtonDefaults.buttonColors()
+                                .copy(containerColor = MaterialTheme.colorScheme.scrim),
+                            border = BorderStroke(
+                                1.dp, MaterialTheme.colorScheme.primaryContainer
+                            ),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text(
+                                text = "-",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .padding(0.dp)
+                            )
+
+                        }
+                    }
+                    Column(
+                        modifier = Modifier.weight(2.0f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = damage.toString(),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.weight(1.0f),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Button(
+                            onClick = {
+                                damage += 1
+                                player.commanderDamage[i] = damage
+                            },
+                            shape = CircleShape,
+                            modifier = Modifier.size(25.dp),
+                            colors = ButtonDefaults.buttonColors()
+                                .copy(containerColor = MaterialTheme.colorScheme.scrim),
+                            border = BorderStroke(
+                                1.dp, MaterialTheme.colorScheme.primaryContainer
+                            ),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Text(
+                                text = "+",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .padding(0.dp)
+                            )
+
+                        }
+                    }
+                }
+            }
+            if(overallFlip){
+                offset -= 2
+            }
+        }
     }
 }

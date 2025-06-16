@@ -54,9 +54,5 @@ fun LifeCounter(
                 {player: Player, number: Int -> player.life += number}
             )
         }
-
-        composable(route = LifeCounterScreen.Settings.name) {
-
-        }
     }
 }

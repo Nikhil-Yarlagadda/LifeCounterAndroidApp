@@ -59,8 +59,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lifecounter.R
 import com.example.lifecounter.data.Counter
+import com.example.lifecounter.data.GameDao
 import com.example.lifecounter.data.Player
 import com.example.lifecounter.ui.theme.Shapes
 
@@ -68,10 +70,12 @@ class GameScreen {
 
     @SuppressLint("NotConstructor")
     @Composable
-    fun GameScreen(players: List<Player>,
-             onSettingsClicked: () -> Unit,
-             onLifeChange: (Player, Int) -> Unit,
-            modifier: Modifier = Modifier){
+    fun GameScreen(
+        viewModel: GameViewModel = viewModel(),
+        players: List<Player>,
+        onSettingsClicked: () -> Unit,
+        onLifeChange: (Player, Int) -> Unit,
+        modifier: Modifier = Modifier){
 
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(Modifier.padding(8.dp))
@@ -117,7 +121,7 @@ class GameScreen {
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
-    fun counterCard(flipped: Boolean, player: Player, players: List<Player>, onLifeChange: (Player, Int) -> Unit){
+    fun counterCard(flipped: Boolean, player: Player, players: List<Player>, onLifeChange: (Player, Int) -> Unit, viewModel: GameViewModel = viewModel()){
         var life by remember { mutableIntStateOf(player.life) }
         var poison by remember { mutableIntStateOf(player.poisonCounters) }
         var energy by remember { mutableIntStateOf(player.energyCounters) }
@@ -169,10 +173,12 @@ class GameScreen {
                                     onClick = {
                                         life -= 1
                                         player.life = life
+                                        viewModel.updatePlayer(player)
                                     },
                                     onLongClick = {
                                         life -= 30
                                         player.life = life
+                                        viewModel.updatePlayer(player)
                                     }
                                 )
                         )
@@ -306,10 +312,12 @@ class GameScreen {
                                     onClick = {
                                         life += 1
                                         player.life = life
+                                        viewModel.updatePlayer(player)
                                     },
                                     onLongClick = {
                                         life += 30
                                         player.life = life
+                                        viewModel.updatePlayer(player)
                                     }
                                 )
                         )
@@ -320,11 +328,18 @@ class GameScreen {
     }
 
     @Composable
-    fun addCounter(flipped:Boolean, dismiss: () -> Unit, player: Player){
+    fun addCounter(flipped:Boolean, dismiss: () -> Unit, player: Player,
+                   viewModel: GameViewModel = viewModel()
+    ){
         var name by remember { mutableStateOf("") }
         Dialog(onDismissRequest = { dismiss()
             name = name.trim()
-            player.countersList.add(Counter(name, 0))},
+            val updatedCounters = player.countersList.toMutableList()
+            updatedCounters.add(Counter(name, 0))
+            val updatedPlayer = player.copy(countersList = updatedCounters)
+            viewModel.updatePlayer(updatedPlayer)
+            player.countersList = updatedCounters
+                                  },
             content = {
                 Card(modifier = Modifier
                     .height(200.dp)
@@ -360,7 +375,11 @@ class GameScreen {
                                 onClick = {
                                     dismiss()
                                     name = name.trim()
-                                    player.countersList.add(Counter(name, 0))
+                                    val updatedCounters = player.countersList.toMutableList()
+                                    updatedCounters.add(Counter(name, 0))
+                                    val updatedPlayer = player.copy(countersList = updatedCounters)
+                                    viewModel.updatePlayer(updatedPlayer)
+                                    player.countersList = updatedCounters
                                 },
                                 colors = ButtonDefaults.buttonColors()
                                     .copy(containerColor = MaterialTheme.colorScheme.secondaryContainer)
@@ -378,7 +397,9 @@ class GameScreen {
     }
 
     @Composable
-    fun counterMenu(flipped:Boolean, dismiss: () -> Unit, player: Player){
+    fun counterMenu(flipped:Boolean, dismiss: () -> Unit, player: Player,
+                    viewModel: GameViewModel = viewModel()
+    ){
         val scrollstate = rememberScrollState()
         var addCounterDialog by remember { mutableStateOf(false) }
         Dialog(dismiss) {
@@ -461,12 +482,21 @@ class GameScreen {
                                     {
                                         value += 1
                                         player.countersList[i].value = value
+                                        viewModel.updatePlayer(player)
                                     },
                                     {
                                         value -= 1
                                         player.countersList[i].value = value
+                                        viewModel.updatePlayer(player)
                                     },
-                                    {player.countersList.removeAt(i)})
+                                    {
+                                        val updatedCounters = player.countersList.toMutableList()
+                                        updatedCounters.removeAt(i)
+                                        val updatedPlayer = player.copy(countersList = updatedCounters)
+                                        viewModel.updatePlayer(updatedPlayer)
+                                        player.countersList = updatedCounters
+                                    }
+                                )
                             }
                         }
                     }
@@ -693,7 +723,9 @@ class GameScreen {
     }
 
     @Composable
-    fun CommanderCard(player: Player, players: List<Player>, start: Int, end:Int, flipped: Boolean, overallFlip:Boolean, modifier: Modifier){
+    fun CommanderCard(player: Player, players: List<Player>, start: Int, end:Int, flipped: Boolean,
+                      overallFlip:Boolean, modifier: Modifier, viewModel: GameViewModel = viewModel()
+    ){
         var offset = if(overallFlip) 2 else 0
         for (j in start until end) {
             var i = j + offset
@@ -726,7 +758,10 @@ class GameScreen {
                         Button(
                             onClick = {
                                 damage -= 1
-                                player.commanderDamage[i] = damage
+                                val updatedDamage = player.commanderDamage.toMutableList()
+                                updatedDamage[i] = damage
+                                val updatedPlayer = player.copy(commanderDamage = updatedDamage)
+                                viewModel.updatePlayer(updatedPlayer)
                             },
                             shape = CircleShape,
                             modifier = Modifier.size(25.dp),
@@ -764,7 +799,10 @@ class GameScreen {
                         Button(
                             onClick = {
                                 damage += 1
-                                player.commanderDamage[i] = damage
+                                val updatedDamage = player.commanderDamage.toMutableList()
+                                updatedDamage[i] = damage
+                                val updatedPlayer = player.copy(commanderDamage = updatedDamage)
+                                viewModel.updatePlayer(updatedPlayer)
                             },
                             shape = CircleShape,
                             modifier = Modifier.size(25.dp),
